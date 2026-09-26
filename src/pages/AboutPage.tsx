@@ -59,15 +59,6 @@ export const AboutPage: React.FC = () => {
                 alt="Taj Tours & Travels Fleet Heritage"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80" />
-              <div className="absolute bottom-6 left-6 right-6 p-6 rounded-2xl bg-[#FFFDF5]/95 backdrop-blur-md border border-[#E6D39D] shadow-xl text-left">
-                <span className="font-pinyon text-2xl text-[#583714] font-normal block mb-1">
-                  The Taj Concierge Guarantee
-                </span>
-                <p className="text-xs text-[#583714] font-medium">
-                  100% On-Time Dispatch • Uniformed Senior Drivers • 50-Point Fleet Safety Checklist
-                </p>
-              </div>
             </div>
           </div>
         </div>

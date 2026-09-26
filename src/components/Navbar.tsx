@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBookingModal }) => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 pt-3 sm:pt-4 px-4 sm:px-6 transition-all duration-300">
+      <header className="fixed top-0 left-0 right-0 z-[110] pt-3 sm:pt-4 px-4 sm:px-6 transition-all duration-300">
         <div className={`max-w-5xl mx-auto rounded-full px-5 transition-all duration-300 ${
           isScrolled
             ? 'py-2 bg-[#FFFDF5]/95 backdrop-blur-xl border border-[#E6D39D] shadow-[0_10px_30px_rgba(88,55,20,0.12)]'
@@ -131,7 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBookingModal }) => {
 
       {/* Full-Screen Mobile Drawer Menu */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-[#FAF5E6] flex flex-col justify-between px-6 pt-28 pb-10 transition-all duration-300 animate-fade-in lg:hidden text-left">
+        <div className="fixed inset-0 z-[100] bg-[#FAF5E6] flex flex-col justify-between px-6 pt-28 pb-10 transition-all duration-300 animate-fade-in lg:hidden text-left">
           <div className="flex flex-col gap-6">
             <div className="text-[10px] uppercase tracking-[0.3em] text-[#583714] font-bold border-b border-[#E6D39D] pb-3">
               Taj Navigation

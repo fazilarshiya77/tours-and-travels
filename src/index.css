@@ -5,27 +5,28 @@
 @layer base {
   html {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 17px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: #FAF5E6;
-    background-image: 
+    background-image:
       radial-gradient(at 0% 0%, rgba(255, 232, 151, 0.45) 0px, transparent 50%),
       radial-gradient(at 100% 0%, rgba(88, 55, 20, 0.18) 0px, transparent 50%),
       radial-gradient(at 50% 100%, rgba(255, 232, 151, 0.35) 0px, transparent 50%);
     background-attachment: fixed;
-    color: #3A230B;
+    color: #291a09;
     scroll-behavior: smooth;
   }
 
   body {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    font-weight: 600;
-    color: #3A230B;
+    font-weight: 700;
+    color: #291a09;
   }
 
   p, span, li, td, th, label, input, select, button, a {
-    font-weight: 600;
+    font-weight: 700;
   }
 
   h1, h2, h3, h4, h5, h6, .font-serif, .font-radley {
@@ -176,5 +177,27 @@
   animation: shimmerSweep 3.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   pointer-events: none;
   z-index: 5;
+}
+
+/* Infinite Horizontal Marquee (Testimonials) — content is duplicated 4x in
+   the markup, so one full loop is 1/4 of the track width, not 1/2. A longer
+   loop period (with more copies) hides the repeat better when there are only
+   a couple of unique items, and the long duration gives a slow, continuous
+   drift rather than an obvious cycling motion. */
+@keyframes marqueeScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-25%);
+  }
+}
+
+.animate-marquee {
+  animation: marqueeScroll 130s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
 

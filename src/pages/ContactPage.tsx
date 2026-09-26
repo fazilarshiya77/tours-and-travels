@@ -15,7 +15,7 @@ export const ContactPage: React.FC = () => {
     e.preventDefault();
     await createInquiry({
       customerName: name,
-      phone,
+      phone: phone ? `+91 ${phone}` : '',
       email,
       message,
       service: 'Contact Request',
@@ -132,7 +132,7 @@ export const ContactPage: React.FC = () => {
                     type="text"
                     required
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))}
                     placeholder="e.g. Vikramaditya Roy"
                     className="w-full bg-[#F7EED3] border border-[#E6D39D] rounded-xl p-3 text-xs text-[#583714] placeholder-[#583714]/50 focus:outline-none focus:border-[#583714]"
                   />
@@ -140,14 +140,21 @@ export const ContactPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-[#583714] mb-1">Phone / WhatsApp Number</label>
-                  <input
-                    type="tel"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+91 98765 43210"
-                    className="w-full bg-[#F7EED3] border border-[#E6D39D] rounded-xl p-3 text-xs text-[#583714] placeholder-[#583714]/50 focus:outline-none focus:border-[#583714]"
-                  />
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3 text-xs font-bold text-[#583714]/70 z-10">+91</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]{10}"
+                      required
+                      maxLength={10}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="98765 43210"
+                      title="Enter a 10-digit mobile number"
+                      className="w-full bg-[#F7EED3] border border-[#E6D39D] rounded-xl pl-9 pr-3 py-3 text-xs text-[#583714] placeholder-[#583714]/50 focus:outline-none focus:border-[#583714]"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -156,20 +163,21 @@ export const ContactPage: React.FC = () => {
                 <input
                   type="email"
                   required
+                  pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
+                  title="Enter a valid email address (e.g. name@company.com)"
                   className="w-full bg-[#F7EED3] border border-[#E6D39D] rounded-xl p-3 text-xs text-[#583714] placeholder-[#583714]/50 focus:outline-none focus:border-[#583714]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#583714] mb-1">Travel Specifications / Message</label>
+                <label className="block text-xs font-bold text-[#583714] mb-1">Travel Specifications / Message (Optional)</label>
                 <textarea
                   rows={4}
-                  required
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={(e) => setMessage(e.target.value.replace(/[^a-zA-Z0-9\s.,%\-/!?()'&:]/g, ''))}
                   placeholder="Describe pick-up city, destination outstation route, vehicle preferences, or corporate requirements..."
                   className="w-full bg-[#F7EED3] border border-[#E6D39D] rounded-xl p-3 text-xs text-[#583714] placeholder-[#583714]/50 focus:outline-none focus:border-[#583714]"
                 />
@@ -177,9 +185,9 @@ export const ContactPage: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-[#FFE897] via-[#E5C268] to-[#FFE897] hover:brightness-105 text-[#583714] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-gold-glow transition-all border border-[#583714]/20"
+                className="w-full py-4 rounded-xl bg-[#583714] hover:bg-[#42280C] text-[#FFE897] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg transition-all border border-[#FFE897]/40 shimmer-btn"
               >
-                <Send className="w-4 h-4 text-[#583714]" />
+                <Send className="w-4 h-4 text-[#FFE897]" />
                 Submit Inquiry to Travel Desk
               </button>
             </form>

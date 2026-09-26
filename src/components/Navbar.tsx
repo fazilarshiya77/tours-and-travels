@@ -53,8 +53,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBookingModal }) => {
               className="flex items-center gap-2.5 shrink-0 group"
               data-cursor="TAJ"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FFE897] via-[#C59A45] to-[#583714] flex items-center justify-center shadow-gold-glow group-hover:scale-105 transition-transform">
-                <span className="font-serif text-[#583714] text-sm font-black tracking-tighter">T</span>
+              <div className="w-8 h-8 rounded-full overflow-hidden shadow-gold-glow group-hover:scale-105 transition-transform shrink-0">
+                <img src="/logo.jfif" alt="Taj Tours & Travels" className="w-full h-full object-cover" />
               </div>
               <div className="flex flex-col text-left">
                 <span className="font-serif text-sm font-bold tracking-wider text-[#583714] group-hover:text-[#8C6228] transition-colors whitespace-nowrap">

@@ -14,7 +14,7 @@ import {
   ExternalLink,
   ChevronRight
 } from 'lucide-react';
-import { setAuthenticated } from '../services/dataService';
+import { signOutAdmin } from '../services/dataService';
 import { useDataStore } from '../hooks/useDataStore';
 
 export const AdminLayout: React.FC = () => {
@@ -25,8 +25,8 @@ export const AdminLayout: React.FC = () => {
 
   const newInquiriesCount = inquiries.filter(i => i.status === 'New').length;
 
-  const handleLogout = () => {
-    setAuthenticated(false);
+  const handleLogout = async () => {
+    await signOutAdmin();
     navigate('/admin/login');
   };
 
@@ -54,8 +54,8 @@ export const AdminLayout: React.FC = () => {
         <div className="space-y-6">
           {/* Logo & Brand */}
           <Link to="/admin/dashboard" className="flex items-center gap-3 px-2 py-1 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FFE897] via-[#C59A45] to-[#583714] flex items-center justify-center shadow-gold-glow group-hover:scale-105 transition-transform shrink-0">
-              <span className="font-serif text-[#3A230B] text-xl font-black">T</span>
+            <div className="w-10 h-10 rounded-full overflow-hidden shadow-gold-glow group-hover:scale-105 transition-transform shrink-0">
+              <img src="/logo.jfif" alt="Taj Tours & Travels" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col text-left">
               <span className="font-serif text-sm font-bold tracking-wide text-[#FFE897] leading-tight">
@@ -131,8 +131,8 @@ export const AdminLayout: React.FC = () => {
       {/* 2. MOBILE TOP BAR */}
       <header className="lg:hidden bg-[#3A230B] text-[#FAF5E6] border-b border-[#E6D39D]/30 px-4 py-3 sticky top-0 z-40 flex items-center justify-between">
         <Link to="/admin/dashboard" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FFE897] to-[#583714] flex items-center justify-center font-serif text-[#3A230B] font-bold text-sm">
-            T
+          <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+            <img src="/logo.jfif" alt="Taj Tours & Travels" className="w-full h-full object-cover" />
           </div>
           <span className="font-serif text-sm font-bold text-[#FFE897]">TAJ CRM</span>
         </Link>

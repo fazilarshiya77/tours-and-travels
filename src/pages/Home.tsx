@@ -712,9 +712,9 @@ export const Home: React.FC<HomeProps> = ({ onOpenBookingModal }) => {
       </section>
 
       {/* 5. CLIENT TESTIMONIALS */}
-      <section className="bg-[#FAF5E6] text-[#583714] py-20 border-b border-[#E6D39D]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          <div className="text-center max-w-xl mx-auto">
+      <section className="bg-[#FAF5E6] text-[#583714] py-20 border-b border-[#E6D39D] overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-xl mx-auto mb-10">
             <span className="text-xs uppercase tracking-[0.25em] text-[#583714] font-bold">
               Verified Reviews
             </span>
@@ -722,12 +722,18 @@ export const Home: React.FC<HomeProps> = ({ onOpenBookingModal }) => {
               What Our Travelers Say
             </h2>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {TESTIMONIALS.map((t) => (
+        {/* Auto-scrolling marquee track (content duplicated once for a seamless loop) */}
+        <div className="relative">
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-40 bg-gradient-to-r from-[#FAF5E6] to-transparent z-10" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-40 bg-gradient-to-l from-[#FAF5E6] to-transparent z-10" />
+
+          <div className="flex w-max animate-marquee">
+            {[...TESTIMONIALS, ...TESTIMONIALS, ...TESTIMONIALS, ...TESTIMONIALS].map((t, idx) => (
               <div
-                key={t.id}
-                className="bg-[#FFFDF5] border border-[#E6D39D] p-8 rounded-2xl space-y-4 flex flex-col justify-between shadow-sm text-left"
+                key={`${t.id}-${idx}`}
+                className="w-[300px] sm:w-[380px] shrink-0 mx-4 bg-[#FFFDF5] border border-[#E6D39D] p-8 rounded-2xl space-y-4 flex flex-col justify-between shadow-sm text-left"
               >
                 <div className="space-y-4">
                   <div className="flex items-center gap-1 text-[#583714]">
@@ -752,32 +758,42 @@ export const Home: React.FC<HomeProps> = ({ onOpenBookingModal }) => {
 
       {/* 6. FINAL CALL TO ACTION BANNER */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#FFE897] via-[#E5C268] to-[#FFE897] border border-[#583714]/30 p-8 sm:p-14 shadow-2xl text-left shimmer-card-banner">
+        <div className="relative rounded-3xl overflow-hidden border border-[#583714]/30 p-8 sm:p-14 shadow-2xl text-left">
+          {/* Background Photo */}
+          <div className="absolute inset-0 z-0">
+            <img
+              src="/home.jfif"
+              alt=""
+              className="w-full h-full object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#3A230B]/90 via-[#3A230B]/70 to-[#3A230B]/40" />
+          </div>
+
           <div className="max-w-2xl space-y-6 relative z-10">
-            <span className="text-xs uppercase tracking-[0.25em] text-[#583714] font-bold">
+            <span className="text-xs uppercase tracking-[0.25em] text-[#FFE897] font-bold">
               All India Mobility Dispatch
             </span>
-            <h2 className="font-serif text-3xl sm:text-5xl font-bold text-[#583714] leading-tight">
+            <h2 className="font-serif text-3xl sm:text-5xl font-bold text-white leading-tight drop-shadow-md">
               Ready to Book Your Ride Now?
             </h2>
-            <p className="text-sm text-[#583714]/90 leading-relaxed font-semibold">
-              Call our travel desk at <strong className="text-[#583714] font-bold">{COMPANY_INFO.phoneDisplay}</strong> for instant ride allocation, outstation quotes, and rental package bookings.
+            <p className="text-sm text-[#FAF5E6]/90 leading-relaxed font-semibold">
+              Call our travel desk at <strong className="text-[#FFE897] font-bold">{COMPANY_INFO.phoneDisplay}</strong> for instant ride allocation, outstation quotes, and rental package bookings.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <button
                 onClick={() => onOpenBookingModal()}
-                className="px-8 py-4 rounded-full bg-[#583714] text-[#FFE897] font-bold text-xs uppercase tracking-widest flex items-center gap-3 shadow-lg hover:bg-[#42280C] transition-all border border-[#FFE897]/40 shimmer-btn"
+                className="px-8 py-4 rounded-full bg-gradient-to-r from-[#FFE897] via-[#E5C268] to-[#FFE897] text-[#583714] font-bold text-xs uppercase tracking-widest flex items-center gap-3 shadow-gold-glow hover:brightness-105 transition-all border border-[#583714]/20 shimmer-btn"
               >
-                <Calendar className="w-4 h-4 text-[#FFE897]" />
+                <Calendar className="w-4 h-4 text-[#583714]" />
                 Book Your Ride Now
               </button>
 
               <a
                 href={`tel:${COMPANY_INFO.phoneRaw}`}
-                className="px-8 py-4 rounded-full bg-[#583714]/10 hover:bg-[#583714]/20 text-[#583714] font-bold text-xs uppercase tracking-widest flex items-center gap-3 border border-[#583714]/40 transition-all"
+                className="px-8 py-4 rounded-full bg-[#FFE897]/15 hover:bg-[#FFE897]/25 backdrop-blur-md text-[#FFE897] font-bold text-xs uppercase tracking-widest flex items-center gap-3 border border-[#FFE897]/40 transition-all shadow-md"
               >
-                <Phone className="w-4 h-4 text-[#583714]" />
+                <Phone className="w-4 h-4 text-[#FFE897]" />
                 Call {COMPANY_INFO.phoneDisplay}
               </a>
             </div>

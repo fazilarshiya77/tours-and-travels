@@ -4,7 +4,6 @@ import { AnimatePresence } from 'framer-motion';
 
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
-import { CustomCursor } from './components/CustomCursor';
 import { FloatingContactBar } from './components/FloatingContactBar';
 import { BookingModal } from './components/BookingModal';
 import { PageTransition } from './components/PageTransition';
@@ -27,14 +26,27 @@ import { AdminTours } from './admin/pages/AdminTours';
 import { AdminInquiries } from './admin/pages/AdminInquiries';
 import { AdminContent } from './admin/pages/AdminContent';
 import { AdminSettings } from './admin/pages/AdminSettings';
-import { isAuthenticated } from './services/dataService';
+import { useAuth } from './hooks/useAuth';
+
+function AdminRootRedirect() {
+  const { authed, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF5E6]">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#583714]" />
+      </div>
+    );
+  }
+
+  return <Navigate to={authed ? '/admin/dashboard' : '/admin/login'} replace />;
+}
 
 function PublicAppLayout({ onOpenBookingModal }: { onOpenBookingModal: (vehicleName?: string) => void }) {
   const location = useLocation();
 
   return (
     <div className="min-h-screen bg-[#FAF5E6] text-[#3A230B] font-sans selection:bg-[#FFE897] selection:text-[#583714] flex flex-col justify-between">
-      <CustomCursor />
       <Navbar onOpenBookingModal={onOpenBookingModal} />
       
       <main className="flex-grow">
@@ -77,16 +89,7 @@ export function App() {
         <Route path="/admin/login" element={<AdminLogin />} />
 
         {/* Admin Root Redirect */}
-        <Route
-          path="/admin"
-          element={
-            isAuthenticated() ? (
-              <Navigate to="/admin/dashboard" replace />
-            ) : (
-              <Navigate to="/admin/login" replace />
-            )
-          }
-        />
+        <Route path="/admin" element={<AdminRootRedirect />} />
 
         {/* Protected Admin CRM Routes */}
         <Route

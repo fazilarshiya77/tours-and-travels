@@ -2,17 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Building, Lock, LogOut, CheckCircle2, ShieldCheck, Save } from 'lucide-react';
 import { useDataStore } from '../../hooks/useDataStore';
-import { updateAdminProfile, setAuthenticated, COMPANY_INFO } from '../../services/dataService';
+import { updateAdminProfile, signOutAdmin, changeAdminPassword, COMPANY_INFO } from '../../services/dataService';
 
 export const AdminSettings: React.FC = () => {
   const navigate = useNavigate();
   const { adminUser, loading } = useDataStore();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     if (adminUser) {
@@ -36,17 +37,34 @@ export const AdminSettings: React.FC = () => {
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPassword.trim()) return;
-    setPasswordSuccess(true);
-    setCurrentPassword('');
-    setNewPassword('');
-    setTimeout(() => setPasswordSuccess(false), 3000);
+    setPasswordError('');
+
+    if (!newPassword.trim()) {
+      setPasswordError('Please enter a new password.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters.');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      await changeAdminPassword(newPassword);
+      setPasswordSuccess(true);
+      setNewPassword('');
+      setTimeout(() => setPasswordSuccess(false), 3000);
+    } catch {
+      setPasswordError('Could not update password. Please try again.');
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
-  const handleLogout = () => {
-    setAuthenticated(false);
+  const handleLogout = async () => {
+    await signOutAdmin();
     navigate('/admin/login');
   };
 
@@ -168,37 +186,31 @@ export const AdminSettings: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleChangePassword} className="space-y-4 text-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="uppercase tracking-wider font-bold text-[#3A230B]">Current Password</label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7EED3] border border-[#E6D39D] text-[#3A230B] font-bold"
-              />
-            </div>
+        {passwordError && (
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
+            {passwordError}
+          </div>
+        )}
 
-            <div className="space-y-1">
-              <label className="uppercase tracking-wider font-bold text-[#3A230B]">New Password</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="New password"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7EED3] border border-[#E6D39D] text-[#3A230B] font-bold"
-              />
-            </div>
+        <form onSubmit={handleChangePassword} className="space-y-4 text-xs">
+          <div className="space-y-1 max-w-xs">
+            <label className="uppercase tracking-wider font-bold text-[#3A230B]">New Password</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="At least 8 characters"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7EED3] border border-[#E6D39D] text-[#3A230B] font-bold"
+            />
           </div>
 
           <div className="pt-2 flex justify-end">
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#583714] text-[#FFE897] font-bold text-xs uppercase tracking-wider hover:bg-[#42280C]"
+              disabled={isChangingPassword}
+              className="px-6 py-2.5 rounded-xl bg-[#583714] text-[#FFE897] font-bold text-xs uppercase tracking-wider hover:bg-[#42280C] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Update Password
+              {isChangingPassword ? 'Updating...' : 'Update Password'}
             </button>
           </div>
         </form>

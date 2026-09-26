@@ -1,15 +1,14 @@
 /**
  * TAJ TOURS & TRAVELS — CENTRALIZED DATA ABSTRACTION LAYER
- * 
+ *
  * Conceptual Architecture:
- * PUBLIC WEBSITE / ADMIN PORTAL -> DATA SERVICE ABSTRACTION -> LOCALSTORAGE (MOCK) / SUPABASE (LATER)
- * 
+ * PUBLIC WEBSITE / ADMIN PORTAL -> DATA SERVICE ABSTRACTION -> SUPABASE (Postgres + Auth)
+ *
  * This service layer isolates database operations from UI components.
- * When Supabase is connected later, replace local storage calls in these async functions
- * with Supabase client queries (e.g. supabase.from('vehicles').select('*')).
  */
 
-import { VEHICLES as INITIAL_VEHICLES, TOURS as INITIAL_TOURS, SERVICES as INITIAL_SERVICES, COMPANY_INFO as INITIAL_COMPANY_INFO, type Vehicle, type TourPackage, type ServiceItem } from '../data/mockData';
+import { supabase } from '../lib/supabaseClient';
+import { COMPANY_INFO as INITIAL_COMPANY_INFO, type Vehicle, type TourPackage, type ServiceItem } from '../data/mockData';
 
 export { INITIAL_COMPANY_INFO as COMPANY_INFO };
 
@@ -92,117 +91,6 @@ export interface AdminUser {
   role: string;
 }
 
-// Initial Inquiries Mock Dataset for Visual Verification
-const INITIAL_INQUIRIES: Inquiry[] = [
-  {
-    id: "inq-101",
-    customerName: "Rahul Sharma",
-    phone: "+91 98765 43210",
-    email: "rahul.sharma@example.com",
-    service: "Outstation Trip",
-    vehicle: "Maruti Suzuki Ertiga",
-    travelDate: "2026-09-28",
-    pickup: "Bengaluru Airport (BLR)",
-    destination: "Mysore City Center",
-    passengers: 5,
-    message: "Family vacation to Mysore & Coorg. Need luggage space for 4 large bags.",
-    status: "New",
-    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    updatedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-  },
-  {
-    id: "inq-102",
-    customerName: "Aisha Verma",
-    phone: "+91 91234 56789",
-    email: "aisha.verma@example.com",
-    service: "Airport Transfer",
-    vehicle: "Maruti Suzuki Dzire",
-    travelDate: "2026-09-27",
-    pickup: "Indiranagar, Bengaluru",
-    destination: "Kempegowda International Airport",
-    passengers: 2,
-    message: "Early morning flight drop at 4:30 AM. Punctuality is priority.",
-    status: "Contacted",
-    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-    updatedAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-  },
-  {
-    id: "inq-103",
-    customerName: "Vikram Malhotra",
-    phone: "+91 99887 76655",
-    email: "vikram.m@corporatedesk.com",
-    service: "Local Hourly Rental",
-    vehicle: "Maruti Suzuki Ertiga",
-    travelDate: "2026-09-29",
-    pickup: "MG Road, Bengaluru",
-    destination: "Electronic City & Whitefield Circuit",
-    passengers: 4,
-    message: "Full day 12h/120km corporate client visit circuit.",
-    status: "Converted",
-    createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-    updatedAt: new Date(Date.now() - 3600000 * 20).toISOString(),
-  },
-  {
-    id: "inq-104",
-    customerName: "Kavita Rao",
-    phone: "+91 94455 66778",
-    email: "kavita.rao@example.com",
-    service: "Outstation Trip",
-    vehicle: "Maruti Suzuki Dzire",
-    travelDate: "2026-10-02",
-    pickup: "Jayanagar 4th Block",
-    destination: "Ooty Mountain Resort",
-    passengers: 3,
-    message: "Required driver fluent in English and Tamil for weekend trip.",
-    status: "Closed",
-    createdAt: new Date(Date.now() - 3600000 * 72).toISOString(),
-    updatedAt: new Date(Date.now() - 3600000 * 36).toISOString(),
-  }
-];
-
-const INITIAL_WEBSITE_CONTENT: WebsiteContent = {
-  hero: {
-    title: "Travel Across India.",
-    subtitle: "Safe • Comfortable • Reliable",
-    description: "Book Maruti Suzuki Ertiga (6+1 Seater MPV) and Maruti Suzuki Dzire (Executive Sedan) for outstation rides, local hourly packages, and airport transfers.",
-    mediaUrl: "/home-hero.mp4",
-  },
-  contact: {
-    phoneDisplay: INITIAL_COMPANY_INFO.phoneDisplay,
-    phoneRaw: INITIAL_COMPANY_INFO.phoneRaw,
-    whatsappNumber: INITIAL_COMPANY_INFO.whatsappNumber,
-    email: INITIAL_COMPANY_INFO.email,
-    address: INITIAL_COMPANY_INFO.address,
-    operatingHours: INITIAL_COMPANY_INFO.operatingHours,
-  },
-  social: {
-    instagram: "https://instagram.com/tajtoursandtravels",
-    facebook: "https://facebook.com/tajtoursandtravels",
-    youtube: "https://youtube.com/tajtoursandtravels",
-  },
-  about: {
-    title: "About Taj Tours & Travels",
-    shortDescription: "Founded on the principles of royal Indian hospitality, safety, and modern automotive excellence.",
-    fullPurpose: "Taj Tours & Travels is built around a singular philosophy: travel should empower, relax, and inspire. Unlike standard car rental agencies, we treat mobility as a concierge hospitality service.",
-  },
-  cta: {
-    badge: "All India Mobility Dispatch",
-    heading: "Ready to Book Your Ride Now?",
-    description: `Call our travel desk at ${INITIAL_COMPANY_INFO.phoneDisplay} for instant ride allocation, outstation quotes, and rental package bookings.`,
-  }
-};
-
-// LocalStorage Keys
-const KEYS = {
-  VEHICLES: 'taj_crm_vehicles_v1',
-  SERVICES: 'taj_crm_services_v1',
-  TOURS: 'taj_crm_tours_v1',
-  INQUIRIES: 'taj_crm_inquiries_v1',
-  CONTENT: 'taj_crm_content_v1',
-  SETTINGS: 'taj_crm_settings_v1',
-  AUTH: 'taj_crm_auth_v1',
-};
-
 // Event Subscription Listener Engine for Real-Time UI Re-renders
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -218,67 +106,217 @@ export function subscribeToStore(callback: Listener): () => void {
   };
 }
 
-// Initializer Helper
-function getStored<T>(key: string, defaultVal: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return defaultVal;
-    return JSON.parse(raw);
-  } catch (e) {
-    console.error(`Error reading ${key} from storage:`, e);
-    return defaultVal;
-  }
+function throwIfError(error: { message: string } | null) {
+  if (error) throw new Error(error.message);
 }
 
-function setStored<T>(key: string, val: T): void {
-  try {
-    localStorage.setItem(key, JSON.stringify(val));
-    notifySubscribers();
-  } catch (e) {
-    console.error(`Error writing ${key} to storage:`, e);
+// ==========================================
+// FLEET IMAGE UPLOADS (Supabase Storage)
+// ==========================================
+
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
+
+export async function uploadFleetImage(file: File): Promise<string> {
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    throw new Error('Please upload a JPG, PNG, WEBP, or GIF image.');
   }
+  if (file.size > MAX_IMAGE_BYTES) {
+    throw new Error('Image must be smaller than 5MB.');
+  }
+
+  const ext = file.name.split('.').pop() || 'jpg';
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+  const { error } = await supabase.storage.from('fleet-images').upload(path, file, {
+    cacheControl: '3600',
+    upsert: false,
+  });
+  throwIfError(error);
+
+  const { data } = supabase.storage.from('fleet-images').getPublicUrl(path);
+  return data.publicUrl;
 }
 
-// Default Seed Vehicle Adapter
-const DEFAULT_EXTENDED_VEHICLES: ExtendedVehicle[] = INITIAL_VEHICLES.map(v => ({
-  ...v,
-  isActive: true,
-  isFeatured: true,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-}));
+// ==========================================
+// Row <-> App-model mappers
+// ==========================================
 
-const DEFAULT_EXTENDED_SERVICES: ExtendedServiceItem[] = INITIAL_SERVICES.map(s => ({
-  ...s,
-  isActive: true,
-  isFeatured: true,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-}));
+function vehicleFromRow(row: any): ExtendedVehicle {
+  return {
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    tagline: row.tagline,
+    image: row.image,
+    passengers: row.passengers,
+    luggage: row.luggage,
+    transmission: row.transmission,
+    fuelType: row.fuel_type,
+    localPerKm: row.local_per_km,
+    outstationCngAc: row.outstation_cng_ac,
+    outstationCngNonAc: row.outstation_cng_non_ac,
+    outstationPetrolAc: row.outstation_petrol_ac,
+    dailyFullDayRate: row.daily_full_day_rate,
+    outstationPerKm: row.outstation_per_km,
+    dailyRate: row.daily_rate,
+    hourlyRate: row.hourly_rate,
+    packages: row.packages ?? [],
+    extraKmRates: row.extra_km_rates ?? {},
+    features: row.features ?? [],
+    popularFor: row.popular_for,
+    specs: row.specs ?? {},
+    isActive: row.is_active,
+    isFeatured: row.is_featured,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
 
-const DEFAULT_EXTENDED_TOURS: ExtendedTourPackage[] = INITIAL_TOURS.map(t => ({
-  ...t,
-  isActive: true,
-  isFeatured: true,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-}));
+function vehicleToRow(data: Partial<ExtendedVehicle>): Record<string, unknown> {
+  const row: Record<string, unknown> = {};
+  if (data.id !== undefined) row.id = data.id;
+  if (data.name !== undefined) row.name = data.name;
+  if (data.category !== undefined) row.category = data.category;
+  if (data.tagline !== undefined) row.tagline = data.tagline;
+  if (data.image !== undefined) row.image = data.image;
+  if (data.passengers !== undefined) row.passengers = data.passengers;
+  if (data.luggage !== undefined) row.luggage = data.luggage;
+  if (data.transmission !== undefined) row.transmission = data.transmission;
+  if (data.fuelType !== undefined) row.fuel_type = data.fuelType;
+  if (data.localPerKm !== undefined) row.local_per_km = data.localPerKm;
+  if (data.outstationCngAc !== undefined) row.outstation_cng_ac = data.outstationCngAc;
+  if (data.outstationCngNonAc !== undefined) row.outstation_cng_non_ac = data.outstationCngNonAc;
+  if (data.outstationPetrolAc !== undefined) row.outstation_petrol_ac = data.outstationPetrolAc;
+  if (data.dailyFullDayRate !== undefined) row.daily_full_day_rate = data.dailyFullDayRate;
+  if (data.outstationPerKm !== undefined) row.outstation_per_km = data.outstationPerKm;
+  if (data.dailyRate !== undefined) row.daily_rate = data.dailyRate;
+  if (data.hourlyRate !== undefined) row.hourly_rate = data.hourlyRate;
+  if (data.packages !== undefined) row.packages = data.packages;
+  if (data.extraKmRates !== undefined) row.extra_km_rates = data.extraKmRates;
+  if (data.features !== undefined) row.features = data.features;
+  if (data.popularFor !== undefined) row.popular_for = data.popularFor;
+  if (data.specs !== undefined) row.specs = data.specs;
+  if (data.isActive !== undefined) row.is_active = data.isActive;
+  if (data.isFeatured !== undefined) row.is_featured = data.isFeatured;
+  return row;
+}
+
+function serviceFromRow(row: any): ExtendedServiceItem {
+  return {
+    id: row.id,
+    title: row.title,
+    subtitle: row.subtitle,
+    description: row.description,
+    icon: row.icon,
+    features: row.features ?? [],
+    image: row.image,
+    ctaText: row.cta_text,
+    isActive: row.is_active,
+    isFeatured: row.is_featured,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function serviceToRow(data: Partial<ExtendedServiceItem>): Record<string, unknown> {
+  const row: Record<string, unknown> = {};
+  if (data.id !== undefined) row.id = data.id;
+  if (data.title !== undefined) row.title = data.title;
+  if (data.subtitle !== undefined) row.subtitle = data.subtitle;
+  if (data.description !== undefined) row.description = data.description;
+  if (data.icon !== undefined) row.icon = data.icon;
+  if (data.features !== undefined) row.features = data.features;
+  if (data.image !== undefined) row.image = data.image;
+  if (data.ctaText !== undefined) row.cta_text = data.ctaText;
+  if (data.isActive !== undefined) row.is_active = data.isActive;
+  if (data.isFeatured !== undefined) row.is_featured = data.isFeatured;
+  return row;
+}
+
+function tourFromRow(row: any): ExtendedTourPackage {
+  return {
+    id: row.id,
+    title: row.title,
+    subtitle: row.subtitle,
+    duration: row.duration,
+    distance: row.distance,
+    image: row.image,
+    route: row.route ?? [],
+    description: row.description,
+    highlights: row.highlights ?? [],
+    recommendedVehicle: row.recommended_vehicle,
+    startingPrice: row.starting_price,
+    category: row.category,
+    isActive: row.is_active,
+    isFeatured: row.is_featured,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function tourToRow(data: Partial<ExtendedTourPackage>): Record<string, unknown> {
+  const row: Record<string, unknown> = {};
+  if (data.id !== undefined) row.id = data.id;
+  if (data.title !== undefined) row.title = data.title;
+  if (data.subtitle !== undefined) row.subtitle = data.subtitle;
+  if (data.duration !== undefined) row.duration = data.duration;
+  if (data.distance !== undefined) row.distance = data.distance;
+  if (data.image !== undefined) row.image = data.image;
+  if (data.route !== undefined) row.route = data.route;
+  if (data.description !== undefined) row.description = data.description;
+  if (data.highlights !== undefined) row.highlights = data.highlights;
+  if (data.recommendedVehicle !== undefined) row.recommended_vehicle = data.recommendedVehicle;
+  if (data.startingPrice !== undefined) row.starting_price = data.startingPrice;
+  if (data.category !== undefined) row.category = data.category;
+  if (data.isActive !== undefined) row.is_active = data.isActive;
+  if (data.isFeatured !== undefined) row.is_featured = data.isFeatured;
+  return row;
+}
+
+function inquiryFromRow(row: any): Inquiry {
+  return {
+    id: row.id,
+    customerName: row.customer_name,
+    phone: row.phone,
+    email: row.email,
+    service: row.service,
+    vehicle: row.vehicle ?? undefined,
+    travelDate: row.travel_date,
+    pickup: row.pickup,
+    destination: row.destination,
+    passengers: row.passengers,
+    message: row.message,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function contentFromRow(row: any): WebsiteContent {
+  return {
+    hero: row.hero,
+    contact: row.contact,
+    social: row.social,
+    about: row.about,
+    cta: row.cta,
+  };
+}
 
 // ==========================================
 // 1. VEHICLES SERVICE API
 // ==========================================
 
 export async function getVehicles(onlyActive = false): Promise<ExtendedVehicle[]> {
-  const list = getStored<ExtendedVehicle[]>(KEYS.VEHICLES, DEFAULT_EXTENDED_VEHICLES);
-  if (onlyActive) {
-    return list.filter(v => v.isActive);
-  }
-  return list;
+  let query = supabase.from('vehicles').select('*').order('created_at', { ascending: false });
+  if (onlyActive) query = query.eq('is_active', true);
+  const { data, error } = await query;
+  throwIfError(error);
+  return (data ?? []).map(vehicleFromRow);
 }
 
 export async function createVehicle(data: Partial<ExtendedVehicle>): Promise<ExtendedVehicle> {
-  const list = await getVehicles(false);
-  const newVehicle: ExtendedVehicle = {
+  const row = {
     id: `v-${Date.now()}`,
     name: data.name || 'New Fleet Vehicle',
     category: data.category || 'sedan',
@@ -287,64 +325,58 @@ export async function createVehicle(data: Partial<ExtendedVehicle>): Promise<Ext
     passengers: data.passengers || 4,
     luggage: data.luggage || 3,
     transmission: data.transmission || 'Chauffeur Driven',
-    fuelType: data.fuelType || 'CNG',
-    localPerKm: data.localPerKm || '₹ 25 / KM',
-    outstationCngAc: data.outstationCngAc || '₹ 15 / KM',
-    outstationCngNonAc: data.outstationCngNonAc || '₹ 14 / KM',
-    outstationPetrolAc: data.outstationPetrolAc || '₹ 16 / KM',
-    dailyFullDayRate: data.dailyFullDayRate || '₹ 4,500 / Day',
-    outstationPerKm: data.outstationPerKm || '₹ 15 / KM',
-    dailyRate: data.dailyRate || '₹ 4,500 / Day',
-    hourlyRate: data.hourlyRate || '8h/80km: ₹2,500',
+    fuel_type: data.fuelType || 'CNG',
+    local_per_km: data.localPerKm || '₹ 25 / KM',
+    outstation_cng_ac: data.outstationCngAc || '₹ 15 / KM',
+    outstation_cng_non_ac: data.outstationCngNonAc || '₹ 14 / KM',
+    outstation_petrol_ac: data.outstationPetrolAc || '₹ 16 / KM',
+    daily_full_day_rate: data.dailyFullDayRate || '₹ 4,500 / Day',
+    outstation_per_km: data.outstationPerKm || '₹ 15 / KM',
+    daily_rate: data.dailyRate || '₹ 4,500 / Day',
+    hourly_rate: data.hourlyRate || '8h/80km: ₹2,500',
     packages: data.packages || [
       { hours: 4, km: 40, price: '₹ 1,500' },
       { hours: 8, km: 80, price: '₹ 2,500' },
     ],
-    extraKmRates: data.extraKmRates || {
+    extra_km_rates: data.extraKmRates || {
       extraKm: '₹ 15 / KM',
       intercity: '₹ 15 / KM',
       rental: '₹ 18 / KM',
     },
     features: data.features || ['Air Conditioned', 'Clean Sanitized Cabin', 'Experienced Driver'],
-    popularFor: data.popularFor || 'Outstation Trips & City Travel',
+    popular_for: data.popularFor || 'Outstation Trips & City Travel',
     specs: data.specs || {
       engine: '1.5L Smart Hybrid',
       seating: `${data.passengers || 4} Passengers + 1 Driver`,
       amenities: ['Air Conditioning', 'Mobile Charging', 'Experienced Driver'],
       safetyRating: 'NCAP Certified',
     },
-    isActive: data.isActive ?? true,
-    isFeatured: data.isFeatured ?? true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    is_active: data.isActive ?? true,
+    is_featured: data.isFeatured ?? true,
   };
 
-  const updated = [newVehicle, ...list];
-  setStored(KEYS.VEHICLES, updated);
-  return newVehicle;
+  const { data: inserted, error } = await supabase.from('vehicles').insert(row).select().single();
+  throwIfError(error);
+  notifySubscribers();
+  return vehicleFromRow(inserted);
 }
 
 export async function updateVehicle(id: string, updates: Partial<ExtendedVehicle>): Promise<ExtendedVehicle> {
-  const list = await getVehicles(false);
-  const index = list.findIndex(v => v.id === id);
-  if (index === -1) throw new Error("Vehicle not found");
-
-  const existing = list[index];
-  const updatedItem: ExtendedVehicle = {
-    ...existing,
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  };
-
-  list[index] = updatedItem;
-  setStored(KEYS.VEHICLES, list);
-  return updatedItem;
+  const { data: updated, error } = await supabase
+    .from('vehicles')
+    .update(vehicleToRow(updates))
+    .eq('id', id)
+    .select()
+    .single();
+  throwIfError(error);
+  notifySubscribers();
+  return vehicleFromRow(updated);
 }
 
 export async function deleteVehicle(id: string): Promise<boolean> {
-  const list = await getVehicles(false);
-  const filtered = list.filter(v => v.id !== id);
-  setStored(KEYS.VEHICLES, filtered);
+  const { error } = await supabase.from('vehicles').delete().eq('id', id);
+  throwIfError(error);
+  notifySubscribers();
   return true;
 }
 
@@ -353,16 +385,15 @@ export async function deleteVehicle(id: string): Promise<boolean> {
 // ==========================================
 
 export async function getServices(onlyActive = false): Promise<ExtendedServiceItem[]> {
-  const list = getStored<ExtendedServiceItem[]>(KEYS.SERVICES, DEFAULT_EXTENDED_SERVICES);
-  if (onlyActive) {
-    return list.filter(s => s.isActive);
-  }
-  return list;
+  let query = supabase.from('services').select('*').order('created_at', { ascending: false });
+  if (onlyActive) query = query.eq('is_active', true);
+  const { data, error } = await query;
+  throwIfError(error);
+  return (data ?? []).map(serviceFromRow);
 }
 
 export async function createService(data: Partial<ExtendedServiceItem>): Promise<ExtendedServiceItem> {
-  const list = await getServices(false);
-  const newService: ExtendedServiceItem = {
+  const row = {
     id: `srv-${Date.now()}`,
     title: data.title || 'New Mobility Service',
     subtitle: data.subtitle || 'Professional Chauffeur Solution',
@@ -370,39 +401,33 @@ export async function createService(data: Partial<ExtendedServiceItem>): Promise
     icon: data.icon || 'Navigation',
     features: data.features || ['Punctual Dispatch', 'Sanitized Cabins', 'Transparent Billing'],
     image: data.image || '/images/chauffeur_service.jpg',
-    ctaText: data.ctaText || 'Book Service Now',
-    isActive: data.isActive ?? true,
-    isFeatured: data.isFeatured ?? true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    cta_text: data.ctaText || 'Book Service Now',
+    is_active: data.isActive ?? true,
+    is_featured: data.isFeatured ?? true,
   };
 
-  const updated = [newService, ...list];
-  setStored(KEYS.SERVICES, updated);
-  return newService;
+  const { data: inserted, error } = await supabase.from('services').insert(row).select().single();
+  throwIfError(error);
+  notifySubscribers();
+  return serviceFromRow(inserted);
 }
 
 export async function updateService(id: string, updates: Partial<ExtendedServiceItem>): Promise<ExtendedServiceItem> {
-  const list = await getServices(false);
-  const index = list.findIndex(s => s.id === id);
-  if (index === -1) throw new Error("Service not found");
-
-  const existing = list[index];
-  const updatedItem: ExtendedServiceItem = {
-    ...existing,
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  };
-
-  list[index] = updatedItem;
-  setStored(KEYS.SERVICES, list);
-  return updatedItem;
+  const { data: updated, error } = await supabase
+    .from('services')
+    .update(serviceToRow(updates))
+    .eq('id', id)
+    .select()
+    .single();
+  throwIfError(error);
+  notifySubscribers();
+  return serviceFromRow(updated);
 }
 
 export async function deleteService(id: string): Promise<boolean> {
-  const list = await getServices(false);
-  const filtered = list.filter(s => s.id !== id);
-  setStored(KEYS.SERVICES, filtered);
+  const { error } = await supabase.from('services').delete().eq('id', id);
+  throwIfError(error);
+  notifySubscribers();
   return true;
 }
 
@@ -411,16 +436,15 @@ export async function deleteService(id: string): Promise<boolean> {
 // ==========================================
 
 export async function getTours(onlyActive = false): Promise<ExtendedTourPackage[]> {
-  const list = getStored<ExtendedTourPackage[]>(KEYS.TOURS, DEFAULT_EXTENDED_TOURS);
-  if (onlyActive) {
-    return list.filter(t => t.isActive);
-  }
-  return list;
+  let query = supabase.from('tours').select('*').order('created_at', { ascending: false });
+  if (onlyActive) query = query.eq('is_active', true);
+  const { data, error } = await query;
+  throwIfError(error);
+  return (data ?? []).map(tourFromRow);
 }
 
 export async function createTour(data: Partial<ExtendedTourPackage>): Promise<ExtendedTourPackage> {
-  const list = await getTours(false);
-  const newTour: ExtendedTourPackage = {
+  const row = {
     id: `tour-${Date.now()}`,
     title: data.title || 'New Travel Circuit',
     subtitle: data.subtitle || 'All India Tour Package',
@@ -430,41 +454,35 @@ export async function createTour(data: Partial<ExtendedTourPackage>): Promise<Ex
     route: data.route || ['Pickup', 'Sightseeing', 'Drop'],
     description: data.description || 'Guided chauffeur tour package with customizable stops.',
     highlights: data.highlights || ['Verified Pilots', 'Flexible Timings', 'Toll & State Tax Transparency'],
-    recommendedVehicle: data.recommendedVehicle || 'Maruti Suzuki Ertiga 6+1 Seater',
-    startingPrice: data.startingPrice || '₹ 17 / KM',
+    recommended_vehicle: data.recommendedVehicle || 'Maruti Suzuki Ertiga 6+1 Seater',
+    starting_price: data.startingPrice || '₹ 17 / KM',
     category: data.category || 'heritage',
-    isActive: data.isActive ?? true,
-    isFeatured: data.isFeatured ?? true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    is_active: data.isActive ?? true,
+    is_featured: data.isFeatured ?? true,
   };
 
-  const updated = [newTour, ...list];
-  setStored(KEYS.TOURS, updated);
-  return newTour;
+  const { data: inserted, error } = await supabase.from('tours').insert(row).select().single();
+  throwIfError(error);
+  notifySubscribers();
+  return tourFromRow(inserted);
 }
 
 export async function updateTour(id: string, updates: Partial<ExtendedTourPackage>): Promise<ExtendedTourPackage> {
-  const list = await getTours(false);
-  const index = list.findIndex(t => t.id === id);
-  if (index === -1) throw new Error("Tour package not found");
-
-  const existing = list[index];
-  const updatedItem: ExtendedTourPackage = {
-    ...existing,
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  };
-
-  list[index] = updatedItem;
-  setStored(KEYS.TOURS, list);
-  return updatedItem;
+  const { data: updated, error } = await supabase
+    .from('tours')
+    .update(tourToRow(updates))
+    .eq('id', id)
+    .select()
+    .single();
+  throwIfError(error);
+  notifySubscribers();
+  return tourFromRow(updated);
 }
 
 export async function deleteTour(id: string): Promise<boolean> {
-  const list = await getTours(false);
-  const filtered = list.filter(t => t.id !== id);
-  setStored(KEYS.TOURS, filtered);
+  const { error } = await supabase.from('tours').delete().eq('id', id);
+  throwIfError(error);
+  notifySubscribers();
   return true;
 }
 
@@ -473,7 +491,9 @@ export async function deleteTour(id: string): Promise<boolean> {
 // ==========================================
 
 export async function getInquiries(): Promise<Inquiry[]> {
-  return getStored<Inquiry[]>(KEYS.INQUIRIES, INITIAL_INQUIRIES);
+  const { data, error } = await supabase.from('inquiries').select('*').order('created_at', { ascending: false });
+  throwIfError(error);
+  return (data ?? []).map(inquiryFromRow);
 }
 
 export async function createInquiry(formData: {
@@ -488,50 +508,65 @@ export async function createInquiry(formData: {
   passengers?: number | string;
   message?: string;
 }): Promise<Inquiry> {
-  const list = await getInquiries();
-  const newInquiry: Inquiry = {
-    id: `inq-${Date.now()}`,
-    customerName: formData.customerName || 'Valued Guest',
+  const row = {
+    customer_name: formData.customerName || 'Valued Guest',
     phone: formData.phone || '+91 90086 30489',
     email: formData.email || 'customer@example.com',
     service: formData.service || 'Outstation Trip',
     vehicle: formData.vehicle || 'Maruti Suzuki Ertiga',
-    travelDate: formData.travelDate || new Date().toISOString().split('T')[0],
+    travel_date: formData.travelDate || new Date().toISOString().split('T')[0],
     pickup: formData.pickup || 'Bengaluru City',
     destination: formData.destination || 'Outstation',
-    passengers: formData.passengers || 4,
+    passengers: String(formData.passengers ?? 4),
     message: formData.message || 'Ride inquiry received from public website.',
-    status: 'New',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    status: 'New' as InquiryStatus,
   };
 
-  const updated = [newInquiry, ...list];
-  setStored(KEYS.INQUIRIES, updated);
-  return newInquiry;
+  // Deliberately no `.select()` here: this insert runs as an anonymous public
+  // visitor, and there is no public SELECT policy on `inquiries` (other
+  // customers' bookings shouldn't be readable) — requesting the row back via
+  // `Prefer: return=representation` would trip RLS's implicit SELECT check on
+  // the RETURNING clause even though the INSERT itself is permitted. The UI
+  // only needs confirmation that the insert succeeded, not the server row.
+  const { error } = await supabase.from('inquiries').insert(row);
+  throwIfError(error);
+  notifySubscribers();
+
+  const now = new Date().toISOString();
+  return inquiryFromRow({
+    id: crypto.randomUUID(),
+    customer_name: row.customer_name,
+    phone: row.phone,
+    email: row.email,
+    service: row.service,
+    vehicle: row.vehicle,
+    travel_date: row.travel_date,
+    pickup: row.pickup,
+    destination: row.destination,
+    passengers: row.passengers,
+    message: row.message,
+    status: row.status,
+    created_at: now,
+    updated_at: now,
+  });
 }
 
 export async function updateInquiryStatus(id: string, status: InquiryStatus): Promise<Inquiry> {
-  const list = await getInquiries();
-  const index = list.findIndex(i => i.id === id);
-  if (index === -1) throw new Error("Inquiry not found");
-
-  const existing = list[index];
-  const updatedItem: Inquiry = {
-    ...existing,
-    status,
-    updatedAt: new Date().toISOString(),
-  };
-
-  list[index] = updatedItem;
-  setStored(KEYS.INQUIRIES, list);
-  return updatedItem;
+  const { data: updated, error } = await supabase
+    .from('inquiries')
+    .update({ status })
+    .eq('id', id)
+    .select()
+    .single();
+  throwIfError(error);
+  notifySubscribers();
+  return inquiryFromRow(updated);
 }
 
 export async function deleteInquiry(id: string): Promise<boolean> {
-  const list = await getInquiries();
-  const filtered = list.filter(i => i.id !== id);
-  setStored(KEYS.INQUIRIES, filtered);
+  const { error } = await supabase.from('inquiries').delete().eq('id', id);
+  throwIfError(error);
+  notifySubscribers();
   return true;
 }
 
@@ -540,12 +575,14 @@ export async function deleteInquiry(id: string): Promise<boolean> {
 // ==========================================
 
 export async function getWebsiteContent(): Promise<WebsiteContent> {
-  return getStored<WebsiteContent>(KEYS.CONTENT, INITIAL_WEBSITE_CONTENT);
+  const { data, error } = await supabase.from('website_content').select('*').eq('id', 1).single();
+  throwIfError(error);
+  return contentFromRow(data);
 }
 
 export async function updateWebsiteContent(updates: Partial<WebsiteContent>): Promise<WebsiteContent> {
   const current = await getWebsiteContent();
-  const updated: WebsiteContent = {
+  const merged: WebsiteContent = {
     ...current,
     ...updates,
     hero: { ...current.hero, ...(updates.hero || {}) },
@@ -555,43 +592,82 @@ export async function updateWebsiteContent(updates: Partial<WebsiteContent>): Pr
     cta: { ...current.cta, ...(updates.cta || {}) },
   };
 
-  setStored(KEYS.CONTENT, updated);
-  return updated;
+  const { data, error } = await supabase
+    .from('website_content')
+    .update({
+      hero: merged.hero,
+      contact: merged.contact,
+      social: merged.social,
+      about: merged.about,
+      cta: merged.cta,
+    })
+    .eq('id', 1)
+    .select()
+    .single();
+  throwIfError(error);
+  notifySubscribers();
+  return contentFromRow(data);
 }
 
 // ==========================================
-// 6. SETTINGS & AUTHENTICATION API
+// 6. ADMIN PROFILE & AUTHENTICATION API
 // ==========================================
 
 export async function getAdminProfile(): Promise<AdminUser> {
-  return getStored<AdminUser>(KEYS.SETTINGS, {
-    id: "admin-1",
-    name: "Taj Business Owner",
-    email: "admin@tajtoursandtravels.com",
-    role: "Super Admin",
-  });
+  const [{ data: profileRow, error: profileError }, { data: userData }] = await Promise.all([
+    supabase.from('admin_profile').select('*').eq('id', 1).single(),
+    supabase.auth.getUser(),
+  ]);
+  throwIfError(profileError);
+
+  return {
+    id: userData.user?.id || 'admin-1',
+    name: profileRow.name,
+    email: userData.user?.email || '',
+    role: profileRow.role,
+  };
 }
 
 export async function updateAdminProfile(updates: Partial<AdminUser>): Promise<AdminUser> {
-  const current = await getAdminProfile();
-  const updated = { ...current, ...updates };
-  setStored(KEYS.SETTINGS, updated);
-  return updated;
+  const row: Record<string, unknown> = {};
+  if (updates.name !== undefined) row.name = updates.name;
+  if (updates.role !== undefined) row.role = updates.role;
+
+  if (Object.keys(row).length > 0) {
+    const { error } = await supabase.from('admin_profile').update(row).eq('id', 1);
+    throwIfError(error);
+  }
+
+  if (updates.email) {
+    const { error } = await supabase.auth.updateUser({ email: updates.email });
+    throwIfError(error);
+  }
+
+  notifySubscribers();
+  return getAdminProfile();
 }
 
-export function isAuthenticated(): boolean {
-  try {
-    return localStorage.getItem(KEYS.AUTH) === 'true';
-  } catch (e) {
-    return false;
-  }
+export async function isAuthenticated(): Promise<boolean> {
+  const { data } = await supabase.auth.getSession();
+  return !!data.session;
 }
 
-export function setAuthenticated(status: boolean): void {
-  try {
-    localStorage.setItem(KEYS.AUTH, status ? 'true' : 'false');
-    notifySubscribers();
-  } catch (e) {
-    console.error("Auth state storage error:", e);
-  }
+export async function signInAdmin(email: string, password: string): Promise<void> {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  throwIfError(error);
 }
+
+export async function signOutAdmin(): Promise<void> {
+  await supabase.auth.signOut();
+}
+
+export async function changeAdminPassword(newPassword: string): Promise<void> {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  throwIfError(error);
+}
+
+// Supabase fires its own auth events (sign in/out, token refresh) independent of
+// the localStorage-era `subscribeToStore` bus, so route guards can react immediately.
+supabase.auth.onAuthStateChange(() => {
+  notifySubscribers();
+});

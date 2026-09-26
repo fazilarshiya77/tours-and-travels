@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Eye, EyeOff, Star, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, EyeOff, Star, X, Upload } from 'lucide-react';
 import { useDataStore } from '../../hooks/useDataStore';
-import { createVehicle, updateVehicle, deleteVehicle, type ExtendedVehicle } from '../../services/dataService';
+import { createVehicle, updateVehicle, deleteVehicle, uploadFleetImage, type ExtendedVehicle } from '../../services/dataService';
 
 export const AdminVehicles: React.FC = () => {
   const { vehicles, loading } = useDataStore();
@@ -13,11 +13,13 @@ export const AdminVehicles: React.FC = () => {
   const [category, setCategory] = useState<'mpv' | 'sedan'>('sedan');
   const [tagline, setTagline] = useState('');
   const [image, setImage] = useState('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState('');
   const [passengers, setPassengers] = useState(4);
   const [fuelType, setFuelType] = useState<'CNG' | 'Petrol' | 'Hybrid'>('CNG');
   const [transmission, setTransmission] = useState<'Chauffeur Driven' | 'Automatic' | 'Manual'>('Chauffeur Driven');
-  const [outstationPerKm, setOutstationPerKm] = useState('₹ 15 / KM');
-  const [dailyRate, setDailyRate] = useState('₹ 4,000 / Day');
+  const [outstationPerKmNumber, setOutstationPerKmNumber] = useState('15');
+  const [dailyRateNumber, setDailyRateNumber] = useState('4000');
   const [featuresText, setFeaturesText] = useState('Air Conditioned, Clean Cabin, Professional Pilot');
   const [isActive, setIsActive] = useState(true);
   const [isFeatured, setIsFeatured] = useState(true);
@@ -39,8 +41,8 @@ export const AdminVehicles: React.FC = () => {
     setPassengers(4);
     setFuelType('CNG');
     setTransmission('Chauffeur Driven');
-    setOutstationPerKm('₹ 15 / KM');
-    setDailyRate('₹ 4,000 / Day');
+    setOutstationPerKmNumber('15');
+    setDailyRateNumber('4000');
     setFeaturesText('Air Conditioned, Clean Sanitized Cabin, Professional Senior Driver');
     setIsActive(true);
     setIsFeatured(true);
@@ -56,8 +58,8 @@ export const AdminVehicles: React.FC = () => {
     setPassengers(vehicle.passengers);
     setFuelType(vehicle.fuelType);
     setTransmission(vehicle.transmission);
-    setOutstationPerKm(vehicle.outstationPerKm);
-    setDailyRate(vehicle.dailyRate);
+    setOutstationPerKmNumber(vehicle.outstationPerKm.replace(/\D/g, '') || '0');
+    setDailyRateNumber(vehicle.dailyRate.replace(/\D/g, '') || '0');
     setFeaturesText(vehicle.features.join(', '));
     setIsActive(vehicle.isActive);
     setIsFeatured(vehicle.isFeatured);
@@ -78,9 +80,28 @@ export const AdminVehicles: React.FC = () => {
     }
   };
 
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    if (!file) return;
+
+    setImageUploadError('');
+    setIsUploadingImage(true);
+    try {
+      const url = await uploadFleetImage(file);
+      setImage(url);
+    } catch (err) {
+      setImageUploadError(err instanceof Error ? err.message : 'Upload failed. Please try again.');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const featuresList = featuresText.split(',').map(f => f.trim()).filter(Boolean);
+    const outstationPerKm = `₹ ${Number(outstationPerKmNumber || 0)} / KM`;
+    const dailyRate = `₹ ${Number(dailyRateNumber || 0).toLocaleString('en-IN')} / Day`;
 
     if (editingVehicle) {
       await updateVehicle(editingVehicle.id, {
@@ -280,18 +301,50 @@ export const AdminVehicles: React.FC = () => {
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="uppercase tracking-wider font-bold text-[#3A230B]">Vehicle Image URL / Path</label>
+              <div className="space-y-2">
+                <label className="uppercase tracking-wider font-bold text-[#3A230B]">Vehicle Image</label>
+
+                <div className="flex items-center gap-3">
+                  {image && (
+                    <img
+                      src={image}
+                      alt="Preview"
+                      className="w-16 h-12 object-cover rounded-lg border border-[#E6D39D] shrink-0"
+                    />
+                  )}
+                  <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[#F7EED3] border border-dashed border-[#583714]/40 text-[#583714] font-bold cursor-pointer hover:bg-[#FFE897]/40 transition-colors">
+                    {isUploadingImage ? (
+                      <span>Uploading...</span>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        <span>Upload Photo (JPG, PNG, WEBP, GIF)</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      disabled={isUploadingImage}
+                      onChange={handleImageFileChange}
+                    />
+                  </label>
+                </div>
+
+                {imageUploadError && (
+                  <span className="text-[10px] text-red-600 font-bold block">{imageUploadError}</span>
+                )}
+
                 <input
                   type="text"
                   value={image}
                   onChange={(e) => setImage(e.target.value)}
-                  placeholder="/ertiga.jpeg or /dzire.png"
+                  placeholder="Or paste an image URL / path: /ertiga.jpeg"
                   className="w-full px-3 py-2.5 rounded-xl bg-[#F7EED3] border border-[#E6D39D] text-[#3A230B] font-bold"
                   required
                 />
                 <span className="text-[10px] text-[#583714] font-medium block">
-                  Supports local paths (e.g. /ertiga.jpeg) or Supabase storage CDN URLs.
+                  Upload a photo above, or paste a local path / Supabase storage CDN URL directly.
                 </span>
               </div>
 
@@ -336,24 +389,36 @@ export const AdminVehicles: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="uppercase tracking-wider font-bold text-[#3A230B]">Outstation Rate / KM</label>
-                  <input
-                    type="text"
-                    value={outstationPerKm}
-                    onChange={(e) => setOutstationPerKm(e.target.value)}
-                    placeholder="₹ 17 / KM"
-                    className="w-full px-3 py-2.5 rounded-xl bg-[#F7EED3] border border-[#E6D39D] text-[#3A230B] font-bold"
-                  />
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3 text-[#3A230B] font-bold z-10">₹</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={outstationPerKmNumber}
+                      onChange={(e) => setOutstationPerKmNumber(e.target.value.replace(/\D/g, ''))}
+                      placeholder="17"
+                      className="w-full pl-7 pr-14 py-2.5 rounded-xl bg-[#F7EED3] border border-[#E6D39D] text-[#3A230B] font-bold"
+                    />
+                    <span className="absolute right-3 text-[#3A230B]/70 font-bold z-10">/ KM</span>
+                  </div>
                 </div>
 
                 <div className="space-y-1">
                   <label className="uppercase tracking-wider font-bold text-[#3A230B]">Daily Rate</label>
-                  <input
-                    type="text"
-                    value={dailyRate}
-                    onChange={(e) => setDailyRate(e.target.value)}
-                    placeholder="₹ 4,500 / Day"
-                    className="w-full px-3 py-2.5 rounded-xl bg-[#F7EED3] border border-[#E6D39D] text-[#3A230B] font-bold"
-                  />
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3 text-[#3A230B] font-bold z-10">₹</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={dailyRateNumber}
+                      onChange={(e) => setDailyRateNumber(e.target.value.replace(/\D/g, ''))}
+                      placeholder="4500"
+                      className="w-full pl-7 pr-16 py-2.5 rounded-xl bg-[#F7EED3] border border-[#E6D39D] text-[#3A230B] font-bold"
+                    />
+                    <span className="absolute right-3 text-[#3A230B]/70 font-bold z-10">/ Day</span>
+                  </div>
                 </div>
               </div>
 

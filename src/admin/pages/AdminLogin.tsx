@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff, ShieldCheck, ArrowRight } from 'lucide-react';
-import { setAuthenticated } from '../../services/dataService';
+import { signInAdmin } from '../../services/dataService';
 
 export const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [email, setEmail] = useState('admin@tajtoursandtravels.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
   const from = (location.state as any)?.from?.pathname || '/admin/dashboard';
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -23,9 +24,15 @@ export const AdminLogin: React.FC = () => {
       return;
     }
 
-    // Standard demo authentication check
-    setAuthenticated(true);
-    navigate(from, { replace: true });
+    setIsSubmitting(true);
+    try {
+      await signInAdmin(email, password);
+      navigate(from, { replace: true });
+    } catch {
+      setError('Incorrect admin email or password.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -38,8 +45,8 @@ export const AdminLogin: React.FC = () => {
         
         {/* Brand Header */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-[#FFE897] via-[#C59A45] to-[#583714] shadow-gold-glow mb-1">
-            <span className="font-serif text-[#3A230B] text-2xl font-black">T</span>
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full overflow-hidden shadow-gold-glow mb-1">
+            <img src="/logo.jfif" alt="Taj Tours & Travels" className="w-full h-full object-cover" />
           </div>
           <div>
             <h1 className="font-serif text-2xl font-bold text-[#3A230B]">
@@ -110,9 +117,10 @@ export const AdminLogin: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full py-3.5 rounded-xl bg-[#583714] hover:bg-[#42280C] text-[#FFE897] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg transition-all border border-[#FFE897]/40 shimmer-btn cursor-pointer"
+            disabled={isSubmitting}
+            className="w-full py-3.5 rounded-xl bg-[#583714] hover:bg-[#42280C] text-[#FFE897] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg transition-all border border-[#FFE897]/40 shimmer-btn cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <span>Enter Admin Dashboard</span>
+            <span>{isSubmitting ? 'Verifying...' : 'Enter Admin Dashboard'}</span>
             <ArrowRight className="w-4 h-4 text-[#FFE897]" />
           </button>
         </form>

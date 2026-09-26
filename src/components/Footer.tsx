@@ -56,8 +56,8 @@ export const Footer: React.FC = () => {
           {/* Brand Col (5 cols) */}
           <div className="lg:col-span-5 flex flex-col gap-4">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full border border-[#FFE897]/40 flex items-center justify-center bg-gradient-to-br from-[#FFE897] via-[#C59A45] to-[#583714] shadow-gold-glow">
-                <span className="font-serif text-[#3A230B] text-lg font-black">T</span>
+              <div className="w-9 h-9 rounded-full border border-[#FFE897]/40 overflow-hidden shadow-gold-glow shrink-0">
+                <img src="/logo.jfif" alt="Taj Tours & Travels" className="w-full h-full object-cover" />
               </div>
               <span className="font-serif text-xl font-bold tracking-wide text-[#FFE897]">
                 TAJ TOUR'S & TRAVELS

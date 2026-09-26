@@ -99,6 +99,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, ini
   const [customerEmail, setCustomerEmail] = useState('');
   const [pickupTime, setPickupTime] = useState('');
   const [notes, setNotes] = useState('');
+  const [website, setWebsite] = useState(''); // honeypot — real visitors never fill this
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   // The modal stays mounted (isOpen just toggles rendering), so without this
@@ -118,6 +119,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, ini
       setCustomerEmail('');
       setPickupTime('');
       setNotes('');
+      setWebsite('');
       setIsSubmitted(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -151,6 +153,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, ini
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (website.trim() !== '') {
+      // Likely a bot. Pretend success without actually submitting.
+      setIsSubmitted(true);
+      return;
+    }
 
     const combinedNotes = pickupTime
       ? `Preferred pickup time: ${pickupTime}. ${notes}`.trim()
@@ -246,6 +254,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, ini
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Honeypot: hidden from real users, bots tend to fill every field */}
+              <input
+                type="text"
+                name="website"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="absolute -left-[9999px] w-px h-px opacity-0"
+              />
 
               {/* Step 1: Trip & Dates */}
               {step === 1 && (

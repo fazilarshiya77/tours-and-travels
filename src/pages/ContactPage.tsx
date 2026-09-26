@@ -9,10 +9,18 @@ export const ContactPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
+  const [website, setWebsite] = useState(''); // honeypot — real visitors never fill this
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (website.trim() !== '') {
+      // Likely a bot. Pretend success without actually submitting.
+      setSubmitted(true);
+      return;
+    }
+
     await createInquiry({
       customerName: name,
       phone: phone ? `+91 ${phone}` : '',
@@ -120,6 +128,18 @@ export const ContactPage: React.FC = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Honeypot: hidden from real users, bots tend to fill every field */}
+              <input
+                type="text"
+                name="website"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="absolute -left-[9999px] w-px h-px opacity-0"
+              />
+
               <div>
                 <h3 className="font-serif text-2xl font-bold text-[#583714]">Send a Bespoke Journey Request</h3>
                 <p className="text-xs text-[#583714]/80 mt-1">Fill out your travel specifications for an itemized quotation.</p>

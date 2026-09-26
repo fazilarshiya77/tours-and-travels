@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-weight: 600;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #FAF5E6;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(255, 232, 151, 0.45) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(88, 55, 20, 0.18) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(255, 232, 151, 0.35) 0px, transparent 50%);
+    background-attachment: fixed;
+    color: #3A230B;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-weight: 600;
+    color: #3A230B;
+  }
+
+  p, span, li, td, th, label, input, select, button, a {
+    font-weight: 600;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-serif, .font-radley {
+    font-family: 'Radley', 'Playfair Display', Georgia, serif;
+    font-weight: 800;
+  }
+}
+
+/* Script & Calligraphic Utilities (Pinyon Script) */
+.font-script, .font-pinyon {
+  font-family: 'Pinyon Script', cursive;
+  font-weight: 400;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF5E6;
+}
+::-webkit-scrollbar-thumb {
+  background: #583714;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FFE897;
+}
+
+/* Exclusive Palette Gradient Utilities (#FFE897 & #583714) */
+.text-gold-gradient, .text-dusk-gradient {
+  background: linear-gradient(135deg, #FFE897 0%, #C59A45 40%, #583714 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gold-light-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFE897 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-gold-gradient, .bg-dusk-gradient {
+  background: linear-gradient(135deg, #FFE897 0%, #C59A45 50%, #583714 100%);
+}
+
+.bg-swatch-gradient {
+  background: linear-gradient(180deg, #FFE897 0%, #8C6228 50%, #583714 100%);
+}
+
+.bg-sunset-gradient {
+  background: linear-gradient(135deg, #FFE897 0%, #583714 100%);
+}
+
+.bg-bronze-gradient {
+  background: linear-gradient(135deg, #583714 0%, #3A230B 100%);
+}
+
+.border-gold-subtle {
+  border-color: rgba(230, 211, 157, 0.6);
+}
+
+/* Glassmorphism Cards & Nav */
+.glass-panel {
+  background: rgba(255, 253, 245, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #E6D39D;
+  box-shadow: 0 15px 35px -5px rgba(88, 55, 20, 0.12);
+}
+
+.glass-nav {
+  background: rgba(255, 253, 245, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid #E6D39D;
+  box-shadow: 0 10px 25px -5px rgba(88, 55, 20, 0.08);
+}
+
+/* Light Section & Card Utilities */
+.light-section {
+  background-color: #FAF5E6;
+  color: #583714;
+}
+
+.light-card {
+  background-color: #FFFDF5;
+  color: #583714;
+  border: 1px solid #E6D39D;
+  box-shadow: 0 10px 25px -5px rgba(88, 55, 20, 0.08);
+}
+
+/* Animated Shimmer Light Sweep Effect */
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  45%, 100% {
+    transform: translateX(180%) skewX(-20deg);
+  }
+}
+
+.shimmer-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-btn::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 232, 151, 0.2) 35%,
+    rgba(255, 255, 255, 0.65) 50%,
+    rgba(255, 232, 151, 0.2) 65%,
+    transparent 100%
+  );
+  animation: shimmerSweep 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.shimmer-card-banner {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-card-banner::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -100%;
+  width: 70%;
+  height: 140%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 40%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.25) 60%,
+    transparent 100%
+  );
+  transform: skewX(-25deg);
+  animation: shimmerSweep 3.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+

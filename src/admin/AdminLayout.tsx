@@ -154,7 +154,7 @@ export const AdminLayout: React.FC = () => {
 
       {/* MOBILE DRAWER */}
       {isMobileDrawerOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-[#3A230B]/95 backdrop-blur-xl flex flex-col justify-between p-6 animate-fade-in text-left">
+        <div className="lg:hidden fixed inset-0 z-50 bg-[#3A230B] flex flex-col justify-between p-6 animate-fade-in text-left">
           <div className="space-y-6 pt-4">
             <div className="flex items-center justify-between pb-4 border-b border-[#FFE897]/20">
               <span className="font-serif text-lg font-bold text-[#FFE897]">Admin Navigation</span>

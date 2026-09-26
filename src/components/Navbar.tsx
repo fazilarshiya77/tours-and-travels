@@ -131,7 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBookingModal }) => {
 
       {/* Full-Screen Mobile Drawer Menu */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-[#FAF5E6]/98 backdrop-blur-2xl flex flex-col justify-between px-6 pt-28 pb-10 transition-all duration-300 animate-fade-in lg:hidden text-left">
+        <div className="fixed inset-0 z-40 bg-[#FAF5E6] flex flex-col justify-between px-6 pt-28 pb-10 transition-all duration-300 animate-fade-in lg:hidden text-left">
           <div className="flex flex-col gap-6">
             <div className="text-[10px] uppercase tracking-[0.3em] text-[#583714] font-bold border-b border-[#E6D39D] pb-3">
               Taj Navigation

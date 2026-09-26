@@ -179,6 +179,20 @@
   z-index: 5;
 }
 
+/* Fade-in utility used by mobile drawers and modals */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out;
+}
+
 /* Infinite Horizontal Marquee (Testimonials) — content is duplicated 4x in
    the markup, so one full loop is 1/4 of the track width, not 1/2. A longer
    loop period (with more copies) hides the repeat better when there are only

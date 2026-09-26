@@ -55,7 +55,7 @@ export const AboutPage: React.FC = () => {
           <div className="lg:col-span-6">
             <div className="relative rounded-3xl overflow-hidden border border-[#E6D39D] shadow-2xl h-[400px]">
               <img
-                src="/images/hero_luxury_car.jpg"
+                src="/about.jfif"
                 alt="Taj Tours & Travels Fleet Heritage"
                 className="w-full h-full object-cover"
               />
